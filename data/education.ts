@@ -1,69 +1,61 @@
-export interface JourneyEntry {
+export type TimelineItemType = "education" | "experience" | "certification";
+
+export interface TimelineItem {
   id: string;
+  type: TimelineItemType;
   title: string;
   institution: string;
   location?: string;
-  period: string;
-  type: "education" | "internship" | "certification" | "workshop";
-  description: string;
-  highlights?: string[];
+  startYear: number | string;
+  endYear: number | string | "Present";
+  description?: string;
+  skills?: string[];
   link?: string;
 }
 
-export const journeyData: JourneyEntry[] = [
+export const timelineData: TimelineItem[] = [
   {
-    id: "degree-ce",
-    title: "B.Tech in Computer Engineering",
-    institution: "Pillai College of Engineering (Pillai University)",
-    location: "Panvel, Maharashtra, India",
-    period: "2023 – 2027",
-    type: "education",
-    description:
-      "Pursuing Bachelor of Technology in Computer Engineering (Current CGPI: 6.25) with rigorous coursework in Data Structures & Algorithms, Object-Oriented Programming, Database Management Systems, Operating Systems, and Software Engineering.",
-    highlights: [
-      "Core programming in C++, Java, and Python with focus on algorithm efficiency and OOP modularity",
-      "Hands-on database modeling, schema normalization, and full-stack software development",
-      "Expected Graduation: 2027",
-    ],
-  },
-  {
-    id: "cert-gcloud",
-    title: "Google Cloud Career Launchpad Program",
-    institution: "Google Cloud",
-    location: "Online",
-    period: "2026",
+    id: "google-deepmind-ai",
     type: "certification",
-    description:
-      "Completed curriculum covering foundational cloud architecture, compute resources, storage solutions, and deployment workflows on Google Cloud Platform.",
-    highlights: [
-      "Explored core GCP services, infrastructure management, and cloud security basics",
-    ],
-  },
-  {
-    id: "cert-deepmind",
     title: "Google DeepMind AI Research Program",
     institution: "Google DeepMind",
-    location: "Online",
-    period: "2026",
-    type: "certification",
-    description:
-      "Program covering machine learning paradigms, modern neural architectures, and responsible AI engineering fundamentals.",
-    highlights: [
-      "Deep dive into machine learning workflows, model evaluation metrics, and AI problem formulation",
-    ],
+    startYear: 2026,
+    endYear: 2026,
+    description: "Specialized foundational research program focused on artificial intelligence paradigms, machine learning models, and modern neural architectures.",
+    skills: ["Artificial Intelligence", "Machine Learning", "Research"],
   },
   {
-    id: "intern-alegria",
+    id: "google-cloud-launchpad",
+    type: "certification",
+    title: "Google Cloud Career Launchpad Program",
+    institution: "Google Cloud",
+    startYear: 2026,
+    endYear: 2026,
+    description: "Cloud computing fundamentals, infrastructure architecture, managed database workflows, and cloud application deployment patterns.",
+    skills: ["Cloud Architecture", "GCP", "Infrastructure"],
+  },
+  {
+    id: "alegria-marketing-intern",
+    type: "experience",
     title: "Marketing Team Intern",
-    institution: "Alegria – Festival of Joy",
-    location: "Navi Mumbai, India",
-    period: "2026",
-    type: "internship",
+    institution: "Alegria - Festival of Joy",
+    location: "Navi Mumbai, Maharashtra",
+    startYear: 2026,
+    endYear: 2026,
     description:
-      "Collaborated with a cross-functional marketing team to design and execute promotional campaigns for a large-scale college cultural festival.",
-    highlights: [
-      "Coordinated with peers to plan outreach strategies, driving increased event visibility and audience engagement",
-      "Strengthened interpersonal communication, team collaboration, and campaign scheduling skills",
-    ],
+      "Collaborated with a cross-functional marketing team to design and execute promotional campaigns for a large-scale college festival. Coordinated with peers to plan outreach strategies, contributing to increased event visibility and audience engagement.",
+    skills: ["Campaign Planning", "Cross-Functional Collaboration", "Outreach"],
+  },
+  {
+    id: "pce-btech",
+    type: "education",
+    title: "B.Tech in Computer Engineering",
+    institution: "Pillai University",
+    location: "Panvel, Maharashtra",
+    startYear: 2023,
+    endYear: 2027,
+    description:
+      "Undergraduate curriculum in Computer Engineering with academic coursework covering Data Structures & Algorithms, Object-Oriented Programming (C++, Java), Database Management Systems (MySQL), and Operating Systems. CGPI: 6.25.",
+    skills: ["Data Structures & Algorithms", "C++", "Java", "Python", "MySQL", "OOP", "Database Design"],
   },
 ];

@@ -1,6 +1,6 @@
 import { profile } from "@/data/profile";
 
-export interface GitHubUser {
+export interface GitHubUserStats {
   login: string;
   name: string;
   avatar_url: string;
@@ -9,95 +9,101 @@ export interface GitHubUser {
   public_repos: number;
   followers: number;
   following: number;
+  created_at: string;
 }
 
 export interface GitHubRepo {
   id: number;
   name: string;
+  full_name: string;
   description: string | null;
   html_url: string;
   stargazers_count: number;
   forks_count: number;
   language: string | null;
   updated_at: string;
+  fork: boolean;
 }
 
-export interface GitHubDataResult {
-  isConfigured: boolean;
-  user: GitHubUser | null;
+export interface GitHubActivityData {
+  stats: GitHubUserStats | null;
   repos: GitHubRepo[];
-  languages: string[];
-  errorMessage?: string;
+  isAvailable: boolean;
+  error?: string;
 }
 
-export async function getGitHubData(): Promise<GitHubDataResult> {
-  const username = profile.github.username?.trim();
-
-  // If username is empty or standard placeholder
-  if (!username || username === "YOUR_GITHUB_USERNAME_TODO" || username === "placeholder") {
-    return {
-      isConfigured: false,
-      user: null,
-      repos: [],
-      languages: [],
-    };
-  }
-
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github.v3+json",
-    "User-Agent": "soham-mali-portfolio",
-  };
-
-  if (process.env.GITHUB_TOKEN) {
-    headers["Authorization"] = `Bearer ${process.env.GITHUB_TOKEN}`;
-  }
-
+export async function fetchGitHubActivity(
+  username: string = profile.githubUsername
+): Promise<GitHubActivityData> {
   try {
+    const token = process.env.GITHUB_TOKEN;
+    const headers: Record<string, string> = {
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "Soham-Mali-Portfolio",
+    };
+
+    if (token && token.trim() !== "") {
+      headers.Authorization = `Bearer ${token.trim()}`;
+    }
+
+    // Short 4-second timeout to prevent stalling builds
+    const signal = AbortSignal.timeout(4000);
+
     const [userRes, reposRes] = await Promise.all([
       fetch(`https://api.github.com/users/${username}`, {
         headers,
-        next: { revalidate: 3600 }, // 1 hour ISR
+        signal,
+        next: { revalidate: 3600 },
       }),
-      fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`, {
+      fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6&type=owner`, {
         headers,
+        signal,
         next: { revalidate: 3600 },
       }),
     ]);
 
+    if (!userRes.ok && userRes.status === 404) {
+      return { stats: null, repos: [], isAvailable: false, error: "GitHub user not found" };
+    }
+
     if (!userRes.ok || !reposRes.ok) {
       return {
-        isConfigured: true,
-        user: null,
+        stats: null,
         repos: [],
-        languages: [],
-        errorMessage: `GitHub API returned ${userRes.status === 403 ? "Rate limit reached" : "Status " + userRes.status}`,
+        isAvailable: false,
+        error: "GitHub API rate limit or service unavailable",
       };
     }
 
-    const user: GitHubUser = await userRes.json();
-    const reposRaw: GitHubRepo[] = await reposRes.json();
+    const stats: GitHubUserStats | null = await userRes.json();
+    const rawRepos: unknown = await reposRes.json();
 
-    const repos: GitHubRepo[] = Array.isArray(reposRaw) ? reposRaw : [];
+    const repos: GitHubRepo[] = Array.isArray(rawRepos)
+      ? rawRepos
+          .filter((repo: Record<string, unknown>) => !repo.fork)
+          .slice(0, 6)
+          .map((repo: Record<string, unknown>) => ({
+            id: Number(repo.id),
+            name: String(repo.name ?? ""),
+            full_name: String(repo.full_name ?? ""),
+            description: repo.description ? String(repo.description) : null,
+            html_url: String(repo.html_url ?? `https://github.com/${username}`),
+            stargazers_count: Number(repo.stargazers_count ?? 0),
+            forks_count: Number(repo.forks_count ?? 0),
+            language: repo.language ? String(repo.language) : null,
+            updated_at: String(repo.updated_at ?? ""),
+            fork: Boolean(repo.fork),
+          }))
+      : [];
 
-    // Extract unique languages
-    const langSet = new Set<string>();
-    repos.forEach((repo) => {
-      if (repo.language) langSet.add(repo.language);
-    });
-
+    return { stats, repos, isAvailable: true };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "Failed to fetch GitHub activity";
     return {
-      isConfigured: true,
-      user,
-      repos,
-      languages: Array.from(langSet),
-    };
-  } catch (error) {
-    return {
-      isConfigured: true,
-      user: null,
+      stats: null,
       repos: [],
-      languages: [],
-      errorMessage: "Could not reach GitHub API at this time.",
+      isAvailable: false,
+      error: errorMessage,
     };
   }
 }

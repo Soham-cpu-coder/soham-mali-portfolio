@@ -12,48 +12,36 @@ const config: Config = {
     extend: {
       colors: {
         background: "#08090D",
-        surface: {
-          DEFAULT: "#10121A",
-          card: "#121520",
-          elevated: "#181C2B",
-          hover: "#1E2337",
-        },
-        border: {
-          DEFAULT: "rgba(255, 255, 255, 0.10)",
-          subtle: "rgba(255, 255, 255, 0.06)",
-          active: "rgba(59, 130, 246, 0.4)",
-        },
+        surface: "#0F1117",
+        "surface-light": "#161922",
+        "border-subtle": "rgba(255, 255, 255, 0.08)",
+        "border-hover": "rgba(255, 255, 255, 0.16)",
         accent: {
           blue: "#3B82F6",
           violet: "#8B5CF6",
-        },
-        text: {
-          primary: "#F8FAFC",
-          muted: "#94A3B8",
-          subtle: "#64748B",
+          cyan: "#06B6D4",
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
-        mono: ["var(--font-geist-mono)", "monospace"],
+        sans: ["var(--font-inter)", "sans-serif"],
+        mono: ["var(--font-jetbrains)", "monospace"],
       },
-      keyframes: {
-        blink: {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0" },
-        },
-        subtlePulse: {
-          "0%, 100%": { opacity: "0.4" },
-          "50%": { opacity: "0.8" },
-        },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
       },
       animation: {
-        blink: "blink 1s step-start infinite",
-        "subtle-pulse": "subtlePulse 4s ease-in-out infinite",
+        "pulse-slow": "pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "glow-slow": "glow 6s ease-in-out infinite alternate",
+      },
+      keyframes: {
+        glow: {
+          "0%": { opacity: "0.4", transform: "scale(1)" },
+          "100%": { opacity: "0.8", transform: "scale(1.05)" },
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
 
 export default config;

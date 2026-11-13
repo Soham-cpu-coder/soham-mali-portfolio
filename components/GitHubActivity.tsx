@@ -1,185 +1,143 @@
-import React from "react";
-import Image from "next/image";
-import { getGitHubData } from "@/lib/github";
+import { Github, Star, GitFork, BookOpen, ExternalLink, ShieldAlert } from "lucide-react";
 import { profile } from "@/data/profile";
-import { Github, Star, GitFork, BookOpen, AlertCircle, Sparkles, ExternalLink } from "lucide-react";
+import { GitHubActivityData } from "@/lib/github";
+import { externalLinkProps } from "@/lib/contact";
+import { SectionHeader } from "@/components/SectionHeader";
+import { SpotlightCard } from "@/components/SpotlightCard";
 
-export async function GitHubActivity() {
-  const data = await getGitHubData();
+interface GitHubActivityProps {
+  data: GitHubActivityData;
+}
+
+export function GitHubActivity({ data }: GitHubActivityProps) {
+  const { stats, repos, isAvailable, error } = data;
 
   return (
-    <section id="github" className="py-20 sm:py-28 border-t border-white/5 relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-            Open Source &amp; GitHub Activity
-          </h2>
-          <p className="text-slate-400 text-base leading-relaxed">
-            Live repositories and open source activity fetched directly from the GitHub REST API.
-          </p>
+    <section id="github" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="space-y-12">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 text-left">
+          <SectionHeader
+            number="04"
+            label="Open Source"
+            title="GitHub Activity & Repositories"
+            subtitle="Real-time public repositories and activity fetched directly from the GitHub API."
+          />
+
+          <a
+            href={profile.socials.github}
+            {...externalLinkProps}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-border-subtle text-xs font-mono text-gray-200 hover:text-white hover:border-accent-blue/40 transition-colors self-start sm:self-auto"
+          >
+            <Github className="w-4 h-4" />
+            <span>@{profile.githubUsername}</span>
+            <ExternalLink className="w-3 h-3 text-gray-500" />
+          </a>
         </div>
 
-        {/* Case 1: GitHub Username is not configured yet */}
-        {!data.isConfigured && (
-          <div className="rounded-2xl bg-[#10121A] border border-white/10 p-8 sm:p-10 relative overflow-hidden">
-            <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-mono mb-4">
-                <Github className="w-3.5 h-3.5" />
-                <span>GITHUB_API_READY</span>
-              </div>
-              <h3 className="text-xl font-bold text-white mb-2">
-                Live GitHub Sync Ready
-              </h3>
-              <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                Connect your account in one step: set your GitHub handle in{" "}
-                <code className="text-xs bg-white/10 px-2 py-0.5 rounded text-blue-300 font-mono">
-                  data/profile.ts
-                </code>{" "}
-                (field: <code className="text-xs font-mono text-slate-300">github.username</code>). Once set, your public repositories, language distribution, and commit updates will render here with 1-hour automated cache revalidation.
+        {/* Stats Row */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <SpotlightCard className="p-4 text-left">
+              <span className="text-xs font-mono text-gray-400">Public Repos</span>
+              <p className="text-2xl font-extrabold text-white mt-1 font-mono">
+                {stats.public_repos}
               </p>
-
-              <div className="flex flex-wrap items-center gap-3">
-                {profile.github.url ? (
-                  <a
-                    href={profile.github.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white text-slate-900 text-xs font-semibold hover:bg-slate-200 transition-colors"
-                  >
-                    <Github className="w-3.5 h-3.5" />
-                    <span>Open GitHub Profile</span>
-                  </a>
-                ) : (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-slate-400 text-xs font-mono">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Awaiting Username in profile.ts</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            </SpotlightCard>
+            <SpotlightCard className="p-4 text-left">
+              <span className="text-xs font-mono text-gray-400">Followers</span>
+              <p className="text-2xl font-extrabold text-accent-blue mt-1 font-mono">
+                {stats.followers}
+              </p>
+            </SpotlightCard>
+            <SpotlightCard className="p-4 text-left">
+              <span className="text-xs font-mono text-gray-400">Following</span>
+              <p className="text-2xl font-extrabold text-accent-violet mt-1 font-mono">
+                {stats.following}
+              </p>
+            </SpotlightCard>
+            <SpotlightCard className="p-4 text-left">
+              <span className="text-xs font-mono text-gray-400">Member Since</span>
+              <p className="text-2xl font-extrabold text-gray-300 mt-1 font-mono">
+                {new Date(stats.created_at).getFullYear()}
+              </p>
+            </SpotlightCard>
           </div>
         )}
 
-        {/* Case 2: API error or rate limit reached */}
-        {data.isConfigured && data.errorMessage && (
-          <div className="rounded-2xl bg-[#10121A] border border-white/10 p-8 text-center">
-            <AlertCircle className="w-8 h-8 text-amber-400 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-white">GitHub Activity Temporarily Offline</h3>
-            <p className="text-xs text-slate-400 mt-1 mb-4">{data.errorMessage}</p>
-            {profile.github.url && (
+        {/* Repositories Grid */}
+        {isAvailable && repos.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {repos.map((repo) => (
               <a
-                href={profile.github.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                key={repo.id}
+                href={repo.html_url}
+                {...externalLinkProps}
+                className="group block"
               >
-                <span>Visit GitHub Directly</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
-        )}
-
-        {/* Case 3: Successfully loaded GitHub user and repos */}
-        {data.isConfigured && data.user && (
-          <div className="space-y-6">
-            {/* User Profile Card */}
-            <div className="rounded-2xl bg-[#10121A] border border-white/10 p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4 text-center sm:text-left">
-                <div className="relative w-14 h-14 rounded-full overflow-hidden border border-white/20">
-                  <Image
-                    src={data.user.avatar_url}
-                    alt={data.user.name || data.user.login}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2 justify-center sm:justify-start">
-                    <span>{data.user.name || data.user.login}</span>
-                    <a
-                      href={data.user.html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-slate-400 hover:text-white"
-                      aria-label="GitHub Profile URL"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </h3>
-                  <p className="text-xs text-slate-400">@{data.user.login}</p>
-                  {data.user.bio && (
-                    <p className="text-xs text-slate-300 mt-1 max-w-md">{data.user.bio}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Stats Counters */}
-              <div className="flex items-center gap-4 sm:gap-6 border-t sm:border-t-0 border-white/10 pt-4 sm:pt-0">
-                <div className="text-center">
-                  <div className="text-lg font-mono font-bold text-white">
-                    {data.user.public_repos}
-                  </div>
-                  <div className="text-[11px] text-slate-400">Repositories</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-mono font-bold text-white">
-                    {data.user.followers}
-                  </div>
-                  <div className="text-[11px] text-slate-400">Followers</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Repositories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.repos.map((repo) => (
-                <a
-                  key={repo.id}
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-xl bg-[#10121A] border border-white/10 p-5 flex flex-col justify-between hover:border-blue-500/40 hover:bg-[#121626] transition-all group"
+                <SpotlightCard
+                  spotlightColor="rgba(59, 130, 246, 0.15)"
+                  className="p-6 text-left flex flex-col justify-between space-y-4 h-full hover:scale-[1.015]"
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="flex items-center gap-2 text-white font-medium text-sm group-hover:text-blue-400 transition-colors line-clamp-1">
-                        <BookOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                        <span>{repo.name}</span>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-white font-bold text-base group-hover:text-accent-blue transition-colors">
+                        <BookOpen className="w-4 h-4 text-gray-400 shrink-0" />
+                        <span className="truncate">{repo.name}</span>
                       </div>
-                      <ExternalLink className="w-3 h-3 text-slate-500 group-hover:text-slate-300 shrink-0" />
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
                     </div>
 
-                    <p className="text-xs text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-                      {repo.description || "No description provided for this repository."}
+                    <p className="text-xs text-gray-400 line-clamp-2 min-h-[2.5rem] leading-relaxed">
+                      {repo.description || "No public description provided for this repository."}
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-white/5">
-                    {repo.language ? (
-                      <span className="flex items-center gap-1.5 font-medium text-slate-300">
-                        <span className="w-2 h-2 rounded-full bg-blue-400" />
-                        {repo.language}
-                      </span>
-                    ) : (
-                      <span className="text-slate-500">Plain</span>
-                    )}
+                  <div className="flex items-center justify-between pt-3 border-t border-border-subtle text-xs text-gray-400 font-mono">
+                    <div className="flex items-center gap-2">
+                      {repo.language && (
+                        <span className="flex items-center gap-1.5 text-gray-300">
+                          <span className="w-2 h-2 rounded-full bg-accent-blue inline-block" />
+                          {repo.language}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-amber-400" />
+                        <Star className="w-3.5 h-3.5 text-amber-400" />
                         {repo.stargazers_count}
                       </span>
                       <span className="flex items-center gap-1">
-                        <GitFork className="w-3 h-3 text-slate-400" />
+                        <GitFork className="w-3.5 h-3.5 text-gray-400" />
                         {repo.forks_count}
                       </span>
                     </div>
                   </div>
-                </a>
-              ))}
-            </div>
+                </SpotlightCard>
+              </a>
+            ))}
           </div>
+        ) : (
+          <SpotlightCard className="p-8 text-center space-y-3 max-w-xl mx-auto">
+            <div className="p-3 rounded-full bg-surface-light border border-border-subtle w-fit mx-auto text-gray-400">
+              {error ? <ShieldAlert className="w-6 h-6 text-amber-400" /> : <Github className="w-6 h-6 text-gray-400" />}
+            </div>
+            <h4 className="text-sm font-bold text-white">
+              {error ? "GitHub Live Activity Unavailable" : "Repositories Loading"}
+            </h4>
+            <p className="text-xs text-gray-400 max-w-md mx-auto">
+              {error || "Recent repositories and open source contribution activity."}
+            </p>
+            <a
+              href={profile.socials.github}
+              {...externalLinkProps}
+              className="inline-flex items-center gap-1.5 text-xs text-accent-blue hover:underline font-mono pt-1"
+            >
+              <span>Visit github.com/{profile.githubUsername}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </SpotlightCard>
         )}
       </div>
     </section>

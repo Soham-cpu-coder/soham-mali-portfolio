@@ -1,35 +1,40 @@
 "use client";
 
-import React from "react";
-import { profile } from "@/data/profile";
+import { useState } from "react";
 import { MessageCircle } from "lucide-react";
+import { profile } from "@/data/profile";
+import { whatsappLink, externalLinkProps } from "@/lib/contact";
 
 export function FloatingWhatsApp() {
-  if (!profile.whatsapp.enabled || !profile.whatsapp.number) {
-    return null;
-  }
-
-  const whatsappUrl = `https://wa.me/${profile.whatsapp.number}?text=${encodeURIComponent(
-    profile.whatsapp.prefilledMessage
-  )}`;
+  const [showTooltip, setShowTooltip] = useState(false);
 
   return (
-    <aside
-      aria-label="Instant WhatsApp Contact"
-      className="fixed bottom-6 right-6 z-40 pb-[env(safe-area-inset-bottom)] pr-[env(safe-area-inset-right)]"
-    >
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Chat with Soham Mali on WhatsApp"
-        className="group relative flex items-center gap-2.5 px-3.5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_10px_25px_rgba(16,185,129,0.35)] transition-all duration-300 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-emerald-400"
+    <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+      {/* Tooltip */}
+      <div
+        className={`px-3 py-1.5 rounded-lg bg-[#0F1117] border border-border-subtle text-xs font-mono text-gray-200 shadow-xl transition-all duration-200 pointer-events-none hidden sm:block ${
+          showTooltip ? "opacity-100 translate-x-0" : "opacity-0 translate-x-2"
+        }`}
+        aria-hidden="true"
       >
-        <MessageCircle className="w-5 h-5 fill-current" />
-        <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-semibold group-hover:max-w-xs transition-all duration-300 ease-in-out opacity-0 group-hover:opacity-100">
-          Chat on WhatsApp
-        </span>
+        Chat on WhatsApp
+      </div>
+
+      {/* Button with soft pulsing glow */}
+      <a
+        href={whatsappLink()}
+        {...externalLinkProps}
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+        onFocus={() => setShowTooltip(true)}
+        onBlur={() => setShowTooltip(false)}
+        className="relative group p-3.5 rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 hover:scale-110 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-background"
+        aria-label={`Chat on WhatsApp with ${profile.name}`}
+      >
+        {/* Soft pulse animation ring */}
+        <span className="absolute -inset-1 rounded-full bg-emerald-500 opacity-40 blur-sm group-hover:opacity-75 transition-opacity animate-pulse-slow" />
+        <MessageCircle className="relative w-6 h-6 fill-white text-emerald-500" />
       </a>
-    </aside>
+    </div>
   );
 }

@@ -3,66 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --font-geist-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-geist-mono: "Geist Mono", "JetBrains Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --background: #08090D;
-  --surface: #10121A;
-  --surface-card: #121520;
-  --accent-blue: #3B82F6;
-  --accent-violet: #8B5CF6;
-  --text-primary: #F8FAFC;
-  --text-muted: #94A3B8;
-  --border-color: rgba(255, 255, 255, 0.10);
+  --background: #08090d;
+  --surface: #0f1117;
+  --surface-light: #161922;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --accent-blue: #3b82f6;
+  --accent-violet: #8b5cf6;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html {
   scroll-behavior: smooth;
-  background-color: #08090D;
-  color: #F8FAFC;
+  background-color: var(--background);
+  color: #f3f4f6;
 }
 
-body {
-  background-color: #08090D;
-  color: #F8FAFC;
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  overflow-x: hidden;
-  line-height: 1.6;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #08090D;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #1E2337;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2D3748;
-}
-
-/* Text selection */
-::selection {
-  background-color: rgba(59, 130, 246, 0.35);
-  color: #FFFFFF;
-}
-
-/* Accessible focus ring */
-*:focus-visible {
-  outline: 2px solid #3B82F6;
-  outline-offset: 2px;
-}
-
-/* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
@@ -71,4 +34,93 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+body {
+  background-color: var(--background);
+  color: #e5e7eb;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  selection-background-color: rgba(139, 92, 246, 0.35);
+  selection-color: #ffffff;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.35);
+  color: #ffffff;
+}
+
+/* Custom futuristic scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #08090d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2430;
+  border-radius: 9999px;
+  border: 2px solid #08090d;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Accessible focus styling */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(15, 17, 23, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.15),
+              0 0 20px -5px rgba(139, 92, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Subtle tech grid background pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Radial glow overlay */
+.bg-radial-glow {
+  background: radial-gradient(
+    circle at 50% 20%,
+    rgba(59, 130, 246, 0.12) 0%,
+    rgba(139, 92, 246, 0.06) 35%,
+    transparent 70%
+  );
+}
+
+/* Terminal custom scrollbar */
+.terminal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.terminal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
 }

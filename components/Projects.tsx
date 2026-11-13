@@ -1,66 +1,67 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { projectsData, Project, ProjectCategory } from "@/data/projects";
-import { ProjectCard } from "./ProjectCard";
-import { ProjectModal } from "./ProjectModal";
-import { FolderGit2 } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { projects, Project, ProjectCategory } from "@/data/projects";
+import { ProjectCard } from "@/components/ProjectCard";
+import { ProjectModal } from "@/components/ProjectModal";
+import { SectionHeader } from "@/components/SectionHeader";
+
+type FilterTab = "All" | ProjectCategory;
+
+const filterTabs: FilterTab[] = ["All", "Web", "AI-ML", "Systems"];
 
 export function Projects() {
-  const [activeCategory, setActiveCategory] = useState<ProjectCategory>("all");
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState<FilterTab>("All");
+  const [activeModalProject, setActiveModalProject] = useState<Project | null>(null);
 
-  // Automatically derive categories from data
-  const categories = useMemo(() => {
-    const set = new Set<string>();
-    projectsData.forEach((p) => set.add(p.category));
-    return ["all", ...Array.from(set)] as ProjectCategory[];
-  }, []);
+  const filteredProjects = projects.filter((project) => {
+    if (selectedFilter === "All") return true;
+    return project.category === selectedFilter;
+  });
 
-  // Filter projects and keep featured projects first
-  const filteredProjects = useMemo(() => {
-    return projectsData
-      .filter((p) => {
-        if (activeCategory === "all") return true;
-        return p.category === activeCategory;
-      })
-      .sort((a, b) => {
-        if (a.featured && !b.featured) return -1;
-        if (!a.featured && b.featured) return 1;
-        return 0;
-      });
-  }, [activeCategory]);
+  const handlePrevProject = () => {
+    if (!activeModalProject) return;
+    const currentIndex = filteredProjects.findIndex((p) => p.id === activeModalProject.id);
+    const prevIndex = (currentIndex - 1 + filteredProjects.length) % filteredProjects.length;
+    setActiveModalProject(filteredProjects[prevIndex]);
+  };
+
+  const handleNextProject = () => {
+    if (!activeModalProject) return;
+    const currentIndex = filteredProjects.findIndex((p) => p.id === activeModalProject.id);
+    const nextIndex = (currentIndex + 1) % filteredProjects.length;
+    setActiveModalProject(filteredProjects[nextIndex]);
+  };
 
   return (
-    <section id="projects" className="py-20 sm:py-28 border-t border-white/5 relative">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div className="max-w-2xl">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-3">
-              Featured Projects
-            </h2>
-            <p className="text-slate-400 text-base leading-relaxed">
-              Software engineering systems, machine learning experiments, and full-stack web builds.
-            </p>
-          </div>
+    <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="space-y-12">
+        {/* Section Header & Filters */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 text-left">
+          <SectionHeader
+            number="03"
+            label="Portfolio"
+            title="Featured Engineering Projects"
+            subtitle="Systems architecture, machine learning recommendation engines, and full-stack web platforms."
+          />
 
-          {/* Dynamic Category Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            {categories.map((cat) => {
-              const isActive = activeCategory === cat;
+          {/* Category Filter Tabs */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface border border-border-subtle self-start md:self-auto">
+            {filterTabs.map((tab) => {
+              const isActive = selectedFilter === tab;
               return (
                 <button
-                  key={cat}
+                  key={tab}
                   type="button"
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all ${
+                  onClick={() => setSelectedFilter(tab)}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all duration-200 ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "bg-[#10121A] border border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                      ? "bg-gradient-to-r from-accent-blue/20 to-accent-violet/20 border border-accent-blue/40 text-white shadow-sm"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  {cat === "all" ? "All Works" : cat}
+                  {tab}
                 </button>
               );
             })}
@@ -68,30 +69,41 @@ export function Projects() {
         </div>
 
         {/* Projects Grid */}
-        {filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence>
             {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.slug}
-                project={project}
-                onSelect={(p) => setSelectedProject(p)}
-              />
+              <motion.div
+                key={project.id}
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ProjectCard
+                  project={project}
+                  onSelect={(p) => setActiveModalProject(p)}
+                />
+              </motion.div>
             ))}
-          </div>
-        ) : (
-          <div className="rounded-2xl bg-[#10121A] border border-white/10 p-12 text-center">
-            <FolderGit2 className="w-8 h-8 text-slate-500 mx-auto mb-3" />
-            <h3 className="text-base font-semibold text-white">No projects found in this category</h3>
-            <p className="text-xs text-slate-400 mt-1">Switch to &apos;All Works&apos; to view all repositories.</p>
+          </AnimatePresence>
+        </motion.div>
+
+        {filteredProjects.length === 0 && (
+          <div className="text-center py-16 text-gray-500 font-mono text-sm">
+            No projects found in this category.
           </div>
         )}
-
-        {/* Interactive Modal Preview */}
-        <ProjectModal
-          project={selectedProject}
-          onClose={() => setSelectedProject(null)}
-        />
       </div>
+
+      {/* Detail Modal with Arrow Keys Navigation */}
+      <ProjectModal
+        project={activeModalProject}
+        isOpen={Boolean(activeModalProject)}
+        onClose={() => setActiveModalProject(null)}
+        onPrev={handlePrevProject}
+        onNext={handleNextProject}
+      />
     </section>
   );
 }

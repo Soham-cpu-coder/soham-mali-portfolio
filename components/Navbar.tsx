@@ -1,42 +1,53 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Menu, X, Github, Linkedin, Mail, ArrowUpRight } from "lucide-react";
 import { profile } from "@/data/profile";
-import { ArrowUpRight, Menu, X, FileText } from "lucide-react";
+import { externalLinkProps, mailtoLink } from "@/lib/contact";
+import { CommandPalette } from "@/components/CommandPalette";
 
-const NAV_ITEMS = [
-  { label: "About", href: "#about" },
-  { label: "Skills", href: "#skills" },
-  { label: "Projects", href: "#projects" },
-  { label: "GitHub", href: "#github" },
-  { label: "Journey", href: "#journey" },
-  { label: "Contact", href: "#contact" },
+interface NavItem {
+  name: string;
+  href: string;
+}
+
+const navItems: NavItem[] = [
+  { name: "About", href: "#about" },
+  { name: "Skills", href: "#skills" },
+  { name: "Projects", href: "#projects" },
+  { name: "Activity", href: "#github" },
+  { name: "Journey", href: "#journey" },
+  { name: "Exploring", href: "#exploring" },
+  { name: "Contact", href: "#contact" },
 ];
 
 export function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("");
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [scrolled, setScrolled] = useState<boolean>(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > 20);
 
-      // Section spy
-      const sections = NAV_ITEMS.map((item) => item.href.substring(1));
-      let current = "";
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 150) {
-            current = sectionId;
-            break;
+      const sections = navItems.map((item) => item.href.substring(1));
+      const scrollPosition = window.scrollY + 140;
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const sectionEl = document.getElementById(sections[i]);
+        if (sectionEl) {
+          const top = sectionEl.offsetTop;
+          if (scrollPosition >= top) {
+            setActiveSection(sections[i]);
+            return;
           }
         }
       }
-      setActiveSection(current);
+
+      if (window.scrollY < 200) {
+        setActiveSection("");
+      }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -44,122 +55,183 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const targetId = href.substring(1);
+    const element = document.getElementById(targetId);
+    if (element) {
+      const yOffset = -80;
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
+  };
+
   return (
-    <header className="fixed top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-5xl">
-      <nav
-        aria-label="Main Navigation"
-        className={`flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border transition-all duration-300 ${
-          isScrolled
-            ? "bg-[#08090D]/90 border-white/15 shadow-[0_8px_30px_rgb(0,0,0,0.45)] backdrop-blur-xl"
-            : "bg-[#10121A]/70 border-white/10 backdrop-blur-md"
+    <>
+      {/* Skip to Content Accessible Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-accent-blue focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled
+            ? "bg-[#08090D]/85 backdrop-blur-md border-b border-border-subtle py-3 shadow-lg shadow-black/30"
+            : "bg-transparent py-5"
         }`}
       >
-        {/* Monogram Logo */}
-        <Link
-          href="#hero"
-          className="flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-full"
-          aria-label="Soham Mali - Home"
-        >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-xs font-bold tracking-wider text-white shadow-sm group-hover:scale-105 transition-transform">
-            SM
-          </div>
-          <span className="font-semibold text-sm tracking-tight text-slate-200 group-hover:text-white transition-colors hidden min-[400px]:inline">
-            Soham Mali
-          </span>
-        </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            {/* Logo / Monogram */}
+            <Link
+              href="/"
+              className="flex items-center gap-2.5 group focus:outline-none"
+              aria-label="Soham Mali Home"
+            >
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent-blue/30 via-accent-violet/20 to-surface border border-accent-blue/40 flex items-center justify-center font-mono font-bold text-accent-blue group-hover:border-accent-violet transition-colors shadow-sm">
+                SM
+              </div>
+              <span className="font-bold tracking-tight text-white group-hover:text-accent-blue transition-colors text-sm sm:text-base">
+                {profile.name}
+                <span className="text-accent-blue">.</span>
+              </span>
+            </Link>
 
-        {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-1 lg:gap-2">
-          {NAV_ITEMS.map((item) => {
-            const isActive = activeSection === item.href.substring(1);
-            return (
+            {/* Desktop Nav Links */}
+            <nav className="hidden lg:flex items-center gap-1 bg-surface/60 border border-border-subtle rounded-full px-3 py-1.5 backdrop-blur-md">
+              {navItems.map((item) => {
+                const isActive = activeSection === item.href.substring(1);
+                return (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    onClick={(e) => handleNavClick(e, item.href)}
+                    className={`relative px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                      isActive
+                        ? "text-white bg-white/10"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {item.name}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-3 right-3 h-[2px] bg-gradient-to-r from-accent-blue to-accent-violet rounded-full" />
+                    )}
+                  </a>
+                );
+              })}
+            </nav>
+
+            {/* Right Action & Search */}
+            <div className="hidden sm:flex items-center gap-3">
+              <CommandPalette />
+
+              <div className="hidden md:flex items-center gap-1 border-l border-border-subtle pl-3">
+                <a
+                  href={profile.socials.github}
+                  {...externalLinkProps}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                  aria-label="GitHub Profile"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+                <a
+                  href={profile.socials.linkedin}
+                  {...externalLinkProps}
+                  className="p-2 text-gray-400 hover:text-blue-400 hover:bg-white/5 rounded-lg transition-colors"
+                  aria-label="LinkedIn Profile"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a
+                  href={mailtoLink(profile.email)}
+                  className="p-2 text-gray-400 hover:text-accent-violet hover:bg-white/5 rounded-lg transition-colors"
+                  aria-label="Direct Email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+
               <a
-                key={item.href}
-                href={item.href}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  isActive
-                    ? "text-white bg-white/10"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
+                href="#contact"
+                onClick={(e) => handleNavClick(e, "#contact")}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-xl bg-gradient-to-r from-accent-blue to-accent-violet text-white hover:opacity-95 transition-all shadow-md shadow-accent-blue/20 active:scale-95"
               >
-                {item.label}
-              </a>
-            );
-          })}
-        </div>
-
-        {/* Resume & Actions */}
-        <div className="flex items-center gap-2">
-          {profile.resume.isAvailable ? (
-            <a
-              href={profile.resume.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-blue-600/20 text-blue-400 border border-blue-500/30 hover:bg-blue-600/30 hover:text-blue-300 transition-colors"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Resume</span>
-              <ArrowUpRight className="w-3 h-3" />
-            </a>
-          ) : (
-            <button
-              type="button"
-              disabled
-              title="Resume coming soon"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed select-none"
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Resume</span>
-              <span className="text-[10px] text-slate-500">(Coming soon)</span>
-            </button>
-          )}
-
-          {/* Mobile menu toggle */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-            aria-expanded={mobileMenuOpen}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden mt-2 p-4 rounded-2xl bg-[#10121A]/95 border border-white/15 backdrop-blur-xl shadow-2xl flex flex-col gap-2">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              {item.label}
-            </a>
-          ))}
-          <div className="pt-2 border-t border-white/10 mt-1">
-            {profile.resume.isAvailable ? (
-              <a
-                href={profile.resume.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium bg-blue-600 text-white"
-              >
-                <span>View Resume</span>
+                <span>Hire Me</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </a>
-            ) : (
-              <div className="w-full text-center py-2 text-xs text-slate-500 bg-white/5 rounded-xl">
-                Resume coming soon
-              </div>
-            )}
+            </div>
+
+            {/* Mobile Actions: Menu Toggle */}
+            <div className="flex items-center gap-2 lg:hidden">
+              <CommandPalette />
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-xl text-gray-400 hover:text-white bg-surface border border-border-subtle focus:outline-none"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
-      )}
-    </header>
+
+        {/* Polished Full-Width Mobile Menu with Safe Areas */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-[#0F1117]/95 border-b border-border-subtle backdrop-blur-xl px-5 pt-4 pb-6 space-y-4 animate-in fade-in slide-in-from-top-4 duration-200">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item) => (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(e, item.href)}
+                  className={`px-3.5 py-2.5 text-sm font-medium rounded-xl transition-colors ${
+                    activeSection === item.href.substring(1)
+                      ? "bg-accent-blue/15 text-accent-blue border border-accent-blue/30"
+                      : "text-gray-300 hover:bg-white/5 hover:text-white"
+                  }`}
+                >
+                  {item.name}
+                </a>
+              ))}
+            </div>
+
+            <div className="pt-4 border-t border-border-subtle flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <a
+                  href={profile.socials.github}
+                  {...externalLinkProps}
+                  className="p-2 text-gray-400 hover:text-white rounded-lg bg-white/5"
+                  aria-label="GitHub"
+                >
+                  <Github className="w-4 h-4" />
+                </a>
+                <a
+                  href={profile.socials.linkedin}
+                  {...externalLinkProps}
+                  className="p-2 text-gray-400 hover:text-white rounded-lg bg-white/5"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin className="w-4 h-4" />
+                </a>
+                <a
+                  href={mailtoLink(profile.email)}
+                  className="p-2 text-gray-400 hover:text-white rounded-lg bg-white/5"
+                  aria-label="Email"
+                >
+                  <Mail className="w-4 h-4" />
+                </a>
+              </div>
+              <span className="text-xs text-gray-500 font-mono">{profile.location}</span>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
   );
 }

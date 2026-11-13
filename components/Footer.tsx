@@ -1,82 +1,68 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
+import { ArrowUp, Github, Linkedin, Mail } from "lucide-react";
 import { profile } from "@/data/profile";
-import { ArrowUp, Github, Linkedin, Mail, MessageSquare } from "lucide-react";
+import { mailtoLink, externalLinkProps } from "@/lib/contact";
 
 export function Footer() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState<number>(2026);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <footer className="py-12 border-t border-white/5 bg-[#08090D] text-slate-400 text-xs">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
-        {/* Left: Branding & Year */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-          <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center text-[10px] font-bold text-white">
-            SM
-          </div>
-          <div>
-            <span className="text-slate-300 font-medium">Soham Mali</span> &copy; {currentYear} • All rights reserved.
-          </div>
+    <footer className="border-t border-border-subtle bg-[#050608] py-12 px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-gray-500">
+        {/* Left Branding */}
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+          <span className="font-semibold text-gray-300 font-mono">
+            {profile.name} &bull; {profile.role}
+          </span>
+          <span className="hidden sm:inline text-gray-700">|</span>
+          <span>&copy; {currentYear} All rights reserved.</span>
         </div>
 
-        {/* Middle: Social Links */}
-        <div className="flex items-center gap-4">
-          {profile.github.url && (
-            <a
-              href={profile.github.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="GitHub Profile"
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              <Github className="w-4 h-4" />
-            </a>
-          )}
-
+        {/* Center Socials */}
+        <div className="flex items-center gap-3">
           <a
-            href={profile.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={profile.socials.github}
+            {...externalLinkProps}
+            className="p-2 rounded-lg bg-surface border border-border-subtle text-gray-400 hover:text-white hover:border-accent-blue/40 transition-colors"
+            aria-label="GitHub Profile"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+          <a
+            href={profile.socials.linkedin}
+            {...externalLinkProps}
+            className="p-2 rounded-lg bg-surface border border-border-subtle text-gray-400 hover:text-blue-400 hover:border-blue-400/40 transition-colors"
             aria-label="LinkedIn Profile"
-            className="text-slate-400 hover:text-blue-400 transition-colors"
           >
             <Linkedin className="w-4 h-4" />
           </a>
-
           <a
-            href={`mailto:${profile.email}`}
-            aria-label="Email Soham Mali"
-            className="text-slate-400 hover:text-blue-400 transition-colors"
+            href={mailtoLink(profile.email)}
+            className="p-2 rounded-lg bg-surface border border-border-subtle text-gray-400 hover:text-accent-violet hover:border-accent-violet/40 transition-colors"
+            aria-label="Email Me"
           >
             <Mail className="w-4 h-4" />
           </a>
-
-          {profile.whatsapp.enabled && profile.whatsapp.number && (
-            <a
-              href={`https://wa.me/${profile.whatsapp.number}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp"
-              className="text-slate-400 hover:text-emerald-400 transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-            </a>
-          )}
         </div>
 
-        {/* Right: Back to top */}
+        {/* Right Back to Top */}
         <button
           type="button"
           onClick={scrollToTop}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="Scroll back to top"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border-subtle text-gray-400 hover:text-white hover:border-accent-blue/40 transition-colors"
+          aria-label="Back to top of page"
         >
-          <span>Back to top</span>
+          <span>Top</span>
           <ArrowUp className="w-3.5 h-3.5" />
         </button>
       </div>

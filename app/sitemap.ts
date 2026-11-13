@@ -1,23 +1,15 @@
 import { MetadataRoute } from "next";
-import { projectsData } from "@/data/projects";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://soham-mali-portfolio.vercel.app";
-
-  const projectUrls = projectsData.map((project) => ({
-    url: `${baseUrl}/projects/${project.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.8,
-  }));
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sohammali.vercel.app";
+  const currentDate = new Date().toISOString();
 
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly" as const,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
       priority: 1.0,
     },
-    ...projectUrls,
   ];
 }

@@ -1,176 +1,232 @@
 "use client";
 
-import React, { useEffect } from "react";
-import Link from "next/link";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { X, ExternalLink, Github, Video, Layers, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Project } from "@/data/projects";
-import { X, ExternalLink, Github, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { externalLinkProps } from "@/lib/contact";
 
 interface ProjectModalProps {
   project: Project | null;
+  isOpen: boolean;
   onClose: () => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 }
 
-export function ProjectModal({ project, onClose }: ProjectModalProps) {
+export function ProjectModal({ project, isOpen, onClose, onPrev, onNext }: ProjectModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "ArrowLeft" && onPrev) {
+        onPrev();
+      } else if (e.key === "ArrowRight" && onNext) {
+        onNext();
+      }
     };
 
-    if (project) {
+    if (isOpen) {
       document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
+      modalRef.current?.focus();
+    } else {
+      document.body.style.overflow = "";
     }
 
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [project, onClose]);
+  }, [isOpen, onClose, onPrev, onNext]);
 
-  if (!project) return null;
+  if (!isOpen || !project) return null;
+
+  const hasAnyLink = Boolean(project.githubUrl || project.liveUrl || project.demoVideoUrl);
 
   return (
     <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-black/80 backdrop-blur-md transition-all"
+      aria-labelledby="modal-project-title"
     >
-      {/* Backdrop click dismiss */}
-      <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      {/* Modal Card */}
-      <div className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-[#0F121C] border border-white/15 shadow-2xl p-6 sm:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                {project.category}
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-white/5 text-slate-400 border border-white/10">
-                {project.status}
-              </span>
-              <span className="text-xs text-slate-500">{project.date}</span>
-            </div>
-            <h2 id="modal-title" className="text-xl sm:text-2xl font-bold text-white">
-              {project.title}
-            </h2>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Project Graphic / Cover */}
-        <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-[#090C14]">
-          <Image
-            src={project.image}
-            alt={project.title}
-            fill
-            className="object-contain sm:object-cover"
-          />
-        </div>
-
-        {/* Summary */}
-        <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-          {project.description}
-        </p>
-
-        {/* Problem & Solution */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-xl bg-[#131726] border border-white/5 p-4">
-            <div className="flex items-center gap-2 text-amber-400 mb-2">
-              <AlertCircle className="w-4 h-4" />
-              <h3 className="text-xs font-semibold tracking-wide uppercase text-white">The Challenge</h3>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {project.problem}
-            </p>
-          </div>
-
-          <div className="rounded-xl bg-[#131726] border border-white/5 p-4">
-            <div className="flex items-center gap-2 text-emerald-400 mb-2">
-              <CheckCircle2 className="w-4 h-4" />
-              <h3 className="text-xs font-semibold tracking-wide uppercase text-white">Engineering Solution</h3>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              {project.solution}
-            </p>
-          </div>
-        </div>
-
-        {/* Key Features */}
-        <div>
-          <h3 className="text-sm font-semibold text-white mb-3">Key Features &amp; Implementation</h3>
-          <ul className="space-y-2">
-            {project.features.map((feat, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-                <span>{feat}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Tech Stack */}
-        <div>
-          <h3 className="text-sm font-semibold text-white mb-2.5">Technologies Used</h3>
-          <div className="flex flex-wrap gap-2">
-            {project.tech.map((t) => (
-              <span
-                key={t}
-                className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/5 border border-white/10 text-slate-200"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Actions - HIDE BUTTON IF LINK IS EMPTY (STRICT RULE) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-white/10">
+      {/* Modal Dialog Card */}
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="relative w-full max-w-2xl bg-[#0F1117] border border-border-subtle rounded-2xl shadow-2xl overflow-hidden z-10 text-left focus:outline-none my-8 animate-in fade-in zoom-in-95 duration-200"
+      >
+        {/* Top Header / Navigation / Close Button */}
+        <div className="flex items-center justify-between p-6 border-b border-border-subtle bg-surface-light/40">
           <div className="flex items-center gap-2">
-            {project.github && project.github.trim() !== "" && (
+            <span className="text-xs font-mono px-2.5 py-1 rounded bg-accent-blue/15 text-accent-blue border border-accent-blue/30">
+              {project.category}
+            </span>
+            {project.featured && (
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-accent-violet/15 text-accent-violet border border-accent-violet/30">
+                Featured
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onPrev && (
+              <button
+                type="button"
+                onClick={onPrev}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors focus:outline-none"
+                aria-label="Previous project (Left arrow)"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            )}
+            {onNext && (
+              <button
+                type="button"
+                onClick={onNext}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors focus:outline-none"
+                aria-label="Next project (Right arrow)"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors focus:outline-none ml-2"
+              aria-label="Close project modal (Escape)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Media or Cyber Monogram Placeholder */}
+        {project.image ? (
+          <div className="relative h-64 w-full bg-surface border-b border-border-subtle">
+            <Image
+              src={project.image}
+              alt={project.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 672px"
+            />
+          </div>
+        ) : (
+          <div className="relative h-36 w-full bg-gradient-to-r from-accent-blue/20 via-accent-violet/20 to-surface flex items-center justify-center border-b border-border-subtle">
+            <div className="text-center space-y-1">
+              <span className="text-2xl font-black text-white tracking-tight">
+                {project.title}
+              </span>
+              <p className="text-xs font-mono text-accent-blue">{project.category} Portfolio</p>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Body */}
+        <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto terminal-scroll">
+          <div>
+            <h3 id="modal-project-title" className="text-2xl font-bold text-white">
+              {project.title}
+            </h3>
+            <p className="text-sm text-gray-300 mt-2 leading-relaxed">
+              {project.longDescription || project.shortDescription}
+            </p>
+          </div>
+
+          {/* Key Features */}
+          {project.features && project.features.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-accent-blue" /> Key Features & Technical Highlights
+              </h4>
+              <ul className="space-y-2">
+                {project.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-300">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Tech Stack Chips */}
+          <div className="space-y-2 pt-2 border-t border-border-subtle">
+            <h4 className="text-xs font-mono uppercase tracking-wider text-gray-400">
+              Technologies Used
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {project.stack.map((tech) => (
+                <span
+                  key={tech}
+                  className="px-2.5 py-1 text-xs font-mono rounded bg-white/5 border border-border-subtle text-gray-300"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer / Actions */}
+        <div className="p-6 border-t border-border-subtle bg-surface-light/40 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {project.liveUrl && (
               <a
-                href={project.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-xs font-medium hover:bg-white/20 transition-colors"
+                href={project.liveUrl}
+                {...externalLinkProps}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-blue text-white text-xs font-medium hover:bg-blue-600 transition-colors"
+              >
+                <span>Live Demo</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+
+            {project.githubUrl && (
+              <a
+                href={project.githubUrl}
+                {...externalLinkProps}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border-subtle text-gray-200 text-xs font-medium hover:text-white hover:border-accent-blue/40 transition-colors"
               >
                 <Github className="w-3.5 h-3.5" />
                 <span>Source Code</span>
               </a>
             )}
 
-            {project.demo && project.demo.trim() !== "" && (
+            {project.demoVideoUrl && (
               <a
-                href={project.demo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-medium hover:bg-blue-500 transition-colors"
+                href={project.demoVideoUrl}
+                {...externalLinkProps}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface border border-border-subtle text-gray-200 text-xs font-medium hover:text-white hover:border-accent-violet/40 transition-colors"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Live Demo</span>
+                <Video className="w-3.5 h-3.5 text-accent-violet" />
+                <span>Watch Walkthrough</span>
               </a>
+            )}
+
+            {!hasAnyLink && (
+              <span className="text-xs font-mono text-gray-500 italic flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400/80 inline-block animate-pulse" />
+                Details & links coming soon
+              </span>
             )}
           </div>
 
-          <Link
-            href={`/projects/${project.slug}`}
-            onClick={onClose}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            <span>Read full project page</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="text-xs text-gray-500 font-mono flex items-center gap-3">
+            <span>Arrow keys: ◀ ▶</span>
+            <span>Esc to close</span>
+          </div>
         </div>
       </div>
     </div>
